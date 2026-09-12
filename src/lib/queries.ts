@@ -47,6 +47,12 @@ export type QueueCase = {
   openFlags: SeverityCounts;
   openEscalations: number;
   checklist: { total: number; done: number; complete: boolean };
+  /**
+   * Files the client has sent, whether or not they matched a checklist item. During
+   * intake there is no checklist yet, so this is the only sign a client has sent
+   * anything at all.
+   */
+  documents: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -68,6 +74,7 @@ type QueueRow = Case & {
   flags: Pick<Flag, "severity">[];
   escalations: Pick<Escalation, "id">[];
   checklistItems: Pick<ChecklistItem, "status">[];
+  documents: Pick<Document, "id">[];
 };
 
 function emptyCounts(): SeverityCounts {
@@ -89,6 +96,7 @@ function toQueueCase(row: QueueRow): QueueCase {
     openFlags,
     openEscalations: row.escalations.length,
     checklist: { total, done, complete: total > 0 && done === total },
+    documents: row.documents.length,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -103,6 +111,7 @@ async function listCasesByStatus(statuses: readonly CaseStatus[], order: "oldest
       flags: { columns: { severity: true }, where: eq(schema.flags.status, "open") },
       escalations: { columns: { id: true }, where: eq(schema.escalations.status, "open") },
       checklistItems: { columns: { status: true } },
+      documents: { columns: { id: true } },
     },
     orderBy: order === "oldest" ? [asc(schema.cases.updatedAt), asc(schema.cases.createdAt)] : [desc(schema.cases.updatedAt)],
   });

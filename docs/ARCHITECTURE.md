@@ -70,7 +70,7 @@ src/components/             console UI (Rail, FlagCard, EvidencePanel, Escalatio
 extension/                  manifest.json, content.js, background.js, popup.*
 docs/                       this file, DEMO.md, DEPLOY.md
 =======
-  jargon/page.tsx           the extension overlay, inside the console (spec §6 cut line)
+  jargon/page.tsx           client-facing PDF reader + selection overlay (spec §3.2, §6 cut line)
   api/copilotkit/[[...path]]/route.ts   CopilotRuntime (v2, multi-route) → OpenRouter
   api/webhooks/channel/     inbound SMS / email from the channel provider
   api/jargon/               explain + escalate (public, CORS for chrome-extension://)

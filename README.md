@@ -34,10 +34,25 @@ case. Then:
 | `/` | the review queue |
 | `/cases/<id>` | one case: flags, evidence, escalations, audit trail |
 | `/dev/phone` | play the client — text the clinic, email documents |
-| `/jargon` | the extension overlay, inside the console |
+| `/jargon` | the client-facing PDF reader: select a term, the overlay explains it |
 | `/api/health` | which backends are live |
 
 `docs/DEMO.md` is the 90-second walkthrough.
+
+### Turning the models on
+
+Grounded explanations need both halves — retrieval and wording. Put them in
+`.env.local` (gitignored) and restart:
+
+```
+EXA_API_KEY=...            # dashboard.exa.ai — searches uscis.gov, returns the quoted passage
+OPENROUTER_API_KEY=...     # openrouter.ai/keys — puts that passage into plain language
+```
+
+`curl localhost:3000/api/health` reports `"llm": true, "exa": true` when both are live.
+Models are chosen in `src/lib/llm/models.ts` and every id is env-overridable
+(`OPENROUTER_MODEL_CHEAP`, `..._STRONG`, `..._VISION`) — the defaults are GPT-5.x
+reasoning models, which take `reasoning.effort` and reject `temperature`.
 
 ## What works without API keys, and what does not
 

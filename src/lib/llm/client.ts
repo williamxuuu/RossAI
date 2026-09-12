@@ -2,7 +2,7 @@ import "server-only";
 import OpenAI from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { z, type ZodType, type ZodTypeDef } from "zod";
-import { modelFor, reasoningEffortFor, OPENROUTER_BASE_URL, openRouterHeaders, type ModelTier } from "./models";
+import { modelFor, reasoningEffortFor, supportsTemperature, OPENROUTER_BASE_URL, openRouterHeaders, type ModelTier } from "./models";
 import { log } from "@/lib/log";
 
 /**
@@ -55,7 +55,7 @@ export async function completeText(opts: CompleteOptions): Promise<string | null
     const model = modelFor(opts.tier);
     const res = await getClient().chat.completions.create({
       model,
-      temperature: opts.temperature ?? 0.2,
+      ...temperatureFor(model, opts.temperature ?? 0.2),
       max_tokens: opts.maxTokens ?? 1024,
       messages: buildMessages(opts),
       ...openRouterExtras(opts.tier, model),
@@ -80,7 +80,7 @@ export async function completeJson<T>(
     const model = modelFor(opts.tier);
     const res = await getClient().chat.completions.create({
       model,
-      temperature: opts.temperature ?? 0,
+      ...temperatureFor(model, opts.temperature ?? 0),
       max_tokens: opts.maxTokens ?? 2048,
       response_format: { type: "json_object" },
       ...openRouterExtras(opts.tier, model),
@@ -105,6 +105,11 @@ export async function completeJson<T>(
     logger.error("completeJson failed", { tier: opts.tier, err: String(err) });
     return null;
   }
+}
+
+/** Omit the field entirely for models that reject it — see `supportsTemperature`. */
+function temperatureFor(model: string, temperature: number): { temperature?: number } {
+  return supportsTemperature(model) ? { temperature } : {};
 }
 
 /**

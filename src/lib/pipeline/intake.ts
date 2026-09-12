@@ -8,7 +8,7 @@ import { localizedDocName } from "@/lib/casetypes/checklists";
 import { ground } from "@/lib/grounding";
 import { classifyClientQuestion, looksLikeQuestion } from "@/lib/guardrails/classify";
 import { log } from "@/lib/log";
-import { checklistProgress, generateChecklist, sendChecklistToClient } from "./checklist";
+import { checklistProgress, generateChecklist, sendChecklistToClient, verifyHeldDocuments } from "./checklist";
 import { getCase, setCaseStatus, updateIntakeState } from "./cases";
 import { createEscalation } from "./escalation";
 import { isAutoSendEnabled, sendGroundedAuto, sendTemplate } from "./reply";
@@ -140,6 +140,9 @@ async function stepChooseCaseType(ctx: Ctx, state: IntakeState): Promise<void> {
   await generateChecklist(ctx.kase.id);
   await setCaseStatus(ctx.kase.id, "collecting_docs", AGENT_ACTOR, { trigger: "case_type_chosen" });
   await sendChecklistToClient(ctx.kase.id, language);
+  // Anything the client sent before choosing a case type was held; check it now that
+  // there is a list to check it against. The client hears "received" after the list.
+  await verifyHeldDocuments(ctx.kase.id);
 }
 
 async function setCaseType(caseId: string, caseType: CaseType): Promise<void> {
