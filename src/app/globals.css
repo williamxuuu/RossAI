@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/* RossAI palette — build spec §5. One accent; flags carry the color weight. */
+:root {
+  --bg: #ede8e0;
+  --panel: #f6f3ed;
+  --surface: #ffffff;
+  --border: #d9d3c9;
+  --ink: #2a2724;
+  --muted: #6b6560;
+  --accent: #3f5b4c;
+  --accent-ink: #ffffff;
+  --warn: #b5802b;
+  --error: #a6453b;
+  --ok: #4f7355;
+
+  --radius-panel: 22px;
+  --radius-tile: 12px;
+  --shadow-panel: 0 10px 30px -12px rgb(42 39 36 / 0.18), 0 2px 6px -2px rgb(42 39 36 / 0.08);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-warn: var(--warn);
+  --color-error: var(--error);
+  --color-ok: var(--ok);
+
+  --radius-panel: var(--radius-panel);
+  --radius-tile: var(--radius-tile);
+  --shadow-panel: var(--shadow-panel);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Section labels: small caps, muted — spec §5 typography */
+.section-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* Floating panel: 20–24px radius, soft shadow, no hard outer border */
+.panel {
+  background: var(--panel);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Icon tile: 56px rounded square, 12px radius */
+.tile {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-tile);
+  background: var(--surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pill nav */
+.pill-nav {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface);
+}
+.pill-nav > * {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.pill-nav > [data-active="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}

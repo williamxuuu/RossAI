@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "RossAI — plain-language immigration forms",
+  "version": "0.1.0",
+  "description": "Select any text on a USCIS page and see what it means in your language, with the official source it came from.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://*.uscis.gov/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["https://*.uscis.gov/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_popup": "popup.html", "default_title": "RossAI" }
+}

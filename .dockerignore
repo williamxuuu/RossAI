@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.data
+.env
+.env.*
+!.env.example
+docs/research
+*.md
+!README.md
+extension
+scripts
+**/*.test.ts
+**/*.test.tsx
+rossai-extension.zip
+.DS_Store
