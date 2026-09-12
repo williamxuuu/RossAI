@@ -1,13 +1,4 @@
 "use client";
-<<<<<<< HEAD
-/**
- * CONTRACT STUB — implemented by the copilot module.
- * Renders the CopilotKit sidebar for one case and registers the case context,
- * HITL gates, and generative flag cards. Mounted by the case review page.
- */
-export type CaseCopilotProps = { caseId: string; onSelectFlag?: (flagId: string) => void };
-export function CaseCopilot(_props: CaseCopilotProps) {
-=======
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
@@ -225,6 +216,5 @@ function parseResult<T>(result: unknown): T | null {
       return null;
     }
   }
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   return null;
 }

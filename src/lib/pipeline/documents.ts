@@ -1,15 +1,4 @@
 import "server-only";
-<<<<<<< HEAD
-import type { InboundMessage } from "@/lib/channel/types";
-
-/**
- * CONTRACT STUB — implemented by the checklist/documents module.
- * Stores each attachment, creates Document rows, and enqueues verification.
- * Returns the created document ids.
- */
-export async function ingestInboundAttachments(_caseId: string, _message: InboundMessage): Promise<string[]> {
-  throw new Error("not implemented: ingestInboundAttachments");
-=======
 import { getDb, schema } from "@/db/client";
 import type { InboundAttachment, InboundMessage } from "@/lib/channel/types";
 import { AGENT_ACTOR, writeAudit } from "@/lib/audit";
@@ -108,5 +97,4 @@ async function ingestOne(caseId: string, message: InboundMessage, attachment: In
     payload: { documentId: row.id, filename: attachment.filename, mimeType: attachment.mimeType, bytes: bytes.byteLength, via: message.channel },
   });
   return row.id;
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }

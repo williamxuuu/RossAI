@@ -1,9 +1,4 @@
 "use client";
-<<<<<<< HEAD
-/** CONTRACT STUB — implemented by the copilot module. Wraps the console in CopilotKitProvider. */
-export function RossCopilotProvider({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-=======
 import { CopilotKitProvider } from "@copilotkit/react-core/v2";
 import "@copilotkit/react-core/v2/styles.css";
 
@@ -24,5 +19,4 @@ export function RossCopilotProvider({ enabled, children }: { enabled: boolean; c
       {children}
     </CopilotKitProvider>
   );
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }
