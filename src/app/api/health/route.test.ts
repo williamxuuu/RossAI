@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-<<<<<<< HEAD
-=======
 import type { HealthReport } from "./route";
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 
 /**
  * Health route: correct shape for every backend combination, 503 when the DB is
@@ -33,52 +30,33 @@ const ENV_KEYS = [
 
 const saved: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {};
 
-<<<<<<< HEAD
-function setEnv(values: Partial<Record<(typeof ENV_KEYS)[number], string>>) {
-  for (const k of ENV_KEYS) delete process.env[k];
-  Object.assign(process.env, values);
-=======
 /** `process.env.NODE_ENV` is typed readonly; the whole object is not. */
 const env = process.env as Record<string, string | undefined>;
 
 function setEnv(values: Partial<Record<(typeof ENV_KEYS)[number], string>>) {
   for (const k of ENV_KEYS) delete env[k];
   Object.assign(env, values);
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }
 
 async function callHealth() {
   vi.resetModules();
   const { GET } = await import("./route");
   const res = await GET();
-<<<<<<< HEAD
-  return { status: res.status, body: await res.json(), text: JSON.stringify(await res.clone().json()) };
-=======
   const text = await res.text(); // read once: the body is a stream and cannot be consumed twice
   return { status: res.status, body: JSON.parse(text) as HealthReport, text };
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }
 
 describe("GET /api/health", () => {
   beforeEach(() => {
-<<<<<<< HEAD
-    for (const k of ENV_KEYS) saved[k] = process.env[k];
-=======
     for (const k of ENV_KEYS) saved[k] = env[k];
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     execute.mockClear();
     getDb.mockClear();
     getChannelProvider.mockResolvedValue({ name: "mock" });
   });
   afterEach(() => {
     for (const k of ENV_KEYS) {
-<<<<<<< HEAD
-      if (saved[k] === undefined) delete process.env[k];
-      else process.env[k] = saved[k];
-=======
       if (saved[k] === undefined) delete env[k];
       else env[k] = saved[k];
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     }
   });
 
