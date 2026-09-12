@@ -10,7 +10,7 @@ import { PhoneSimulator } from "@/components/dev/PhoneSimulator";
  * the same InboundMessage a channel provider would and runs the real pipeline.
  */
 export const dynamic = "force-dynamic";
-export const metadata = { title: "RossAI — client simulator" };
+export const metadata = { title: "RossAI — Messages" };
 
 export default async function PhonePage() {
   if (!devEnabled()) notFound();

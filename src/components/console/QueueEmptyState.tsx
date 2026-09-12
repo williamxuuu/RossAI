@@ -1,4 +1,5 @@
 import { CheckIcon, FileIcon, SparkIcon } from "@/components/ui/icons";
+import Link from "next/link";
 
 /** Center panel on the queue page: explains what the queue is and isn't. */
 export function QueueEmptyState({ queueCount }: { queueCount: number }) {
@@ -16,6 +17,9 @@ export function QueueEmptyState({ queueCount }: { queueCount: number }) {
         <Step icon={<SparkIcon />} title="Scan runs" body="Blank fields, contradictions and rejection triggers become cited flags." />
         <Step icon={<CheckIcon />} title="You review" body="Approve, edit or reject each flag; approved text goes to the client." />
       </ol>
+      <Link href="/dev/phone" className="mt-6 inline-flex text-sm text-accent underline underline-offset-2">
+        Try the live intake demo
+      </Link>
     </section>
   );
 }

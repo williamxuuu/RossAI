@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CaseDetail } from "@/lib/queries";
 import { caseTypeLabel } from "@/lib/casetypes";
@@ -17,6 +17,7 @@ import {
   decideFlagRequest,
   dismissEscalationRequest,
   replyEscalationRequest,
+  sendClientMessageRequest,
   type CaseAction,
   type FlagDecisionBody,
 } from "./api";
@@ -38,6 +39,7 @@ export function CaseReview({ detail, copilotEnabled }: { detail: CaseDetail; cop
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<string | null>(null);
+  const [messageDraft, setMessageDraft] = useState("");
 
   const caseId = detail.case.id;
   const openFlags = detail.flags.filter((f) => f.status === "open");
@@ -56,6 +58,14 @@ export function CaseReview({ detail, copilotEnabled }: { detail: CaseDetail; cop
   }, [detail.documents, detail.checklistItems]);
 
   const refresh = () => startTransition(() => router.refresh());
+
+  // The client workspace and this review page read the same local message history.
+  // Refreshing lightly keeps a newly received client message or sent reminder visible
+  // on both sides during active review.
+  useEffect(() => {
+    const timer = window.setInterval(() => router.refresh(), 2000);
+    return () => window.clearInterval(timer);
+  }, [router]);
 
   function setError(key: string, message?: string) {
     setErrors((prev) => {
@@ -117,6 +127,22 @@ export function CaseReview({ detail, copilotEnabled }: { detail: CaseDetail; cop
     refresh();
   }
 
+  async function sendClientMessage() {
+    const text = messageDraft.trim();
+    if (!text) return;
+    setBusyId("message");
+    setError("message");
+    const result = await sendClientMessageRequest(caseId, text);
+    setBusyId(null);
+    if (!result.ok) {
+      setError("message", result.error);
+      return;
+    }
+    setMessageDraft("");
+    setNotice("Message sent to the client.");
+    refresh();
+  }
+
   return (
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="flex flex-col gap-5">
@@ -155,6 +181,24 @@ export function CaseReview({ detail, copilotEnabled }: { detail: CaseDetail; cop
           </div>
           {notice ? <p className="mt-3 text-xs text-ok">{notice}</p> : null}
           {["nudge", "scan", "close"].map((a) => (errors[a] ? <p key={a} className="mt-2 text-xs text-error">{errors[a]}</p> : null))}
+          <div className="mt-4 flex gap-2 border-t border-border pt-4">
+            <input
+              value={messageDraft}
+              onChange={(event) => setMessageDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  void sendClientMessage();
+                }
+              }}
+              placeholder="Message the client"
+              className="min-w-0 flex-1 rounded-full border border-border bg-surface px-4 py-2 text-sm text-ink placeholder:text-muted focus-visible:outline-2 focus-visible:outline-accent"
+            />
+            <Button size="sm" busy={busyId === "message"} disabled={!messageDraft.trim()} onClick={() => void sendClientMessage()}>
+              Send
+            </Button>
+          </div>
+          {errors.message ? <p className="mt-2 text-xs text-error">{errors.message}</p> : null}
         </section>
 
         {openEscalations.length > 0 ? (

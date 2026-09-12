@@ -45,6 +45,13 @@ export function replyEscalationRequest(caseId: string, escalationId: string, eng
   });
 }
 
+export function sendClientMessageRequest(caseId: string, englishText: string) {
+  return call<{ messageId: string }>(`/api/cases/${caseId}/message`, {
+    method: "POST",
+    body: JSON.stringify({ englishText }),
+  });
+}
+
 export function dismissEscalationRequest(caseId: string, escalationId: string) {
   return call<{ ok: true }>(`/api/cases/${caseId}/escalations/${escalationId}/dismiss`, { method: "POST" });
 }

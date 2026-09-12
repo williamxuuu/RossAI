@@ -20,7 +20,8 @@ export async function runJob<N extends JobName>(name: N, payload: JobPayloads[N]
     }
     case "nudge-pending": {
       const { nudgePending } = await import("@/lib/pipeline/checklist");
-      await nudgePending((payload as JobPayloads["nudge-pending"]).caseId);
+      const p = payload as JobPayloads["nudge-pending"];
+      await nudgePending(p.caseId, p.paralegalId);
       return;
     }
     case "scan-case": {

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import type { QueueCase } from "@/lib/queries";
 import { languageName } from "@/lib/i18n";
 import { Chip } from "@/components/ui/Chip";
@@ -10,8 +13,19 @@ import { CASE_STATUS_LABEL } from "./labels";
  * scanning. These are deliberately NOT in the queue (spec §3.3).
  */
 export function InProgressPanel({ cases, defaultOpen = false }: { cases: QueueCase[]; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  useEffect(() => {
+    const revealWhenLinked = () => {
+      if (window.location.hash === "#in-progress") setOpen(true);
+    };
+    revealWhenLinked();
+    window.addEventListener("hashchange", revealWhenLinked);
+    return () => window.removeEventListener("hashchange", revealWhenLinked);
+  }, []);
+
   return (
-    <details id="in-progress" open={defaultOpen} className="panel group p-5 opacity-90">
+    <details id="in-progress" open={open} onToggle={(event) => setOpen(event.currentTarget.open)} className="panel group p-5 opacity-90">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
         <span className="flex items-baseline gap-3">
           <span className="section-label">In progress</span>

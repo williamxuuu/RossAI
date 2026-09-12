@@ -194,7 +194,7 @@ async function rejectDocument(kase: Case, documentId: string, verdict: Verdict, 
  * nudges that one case (the console button); without one it nudges every case still
  * collecting documents (the daily Trigger.dev schedule).
  */
-export async function nudgePending(caseId?: string): Promise<void> {
+export async function nudgePending(caseId?: string, paralegalId?: string): Promise<void> {
   const db = await getDb();
   const cases = caseId
     ? await db.query.cases.findMany({ where: eq(schema.cases.id, caseId) })
@@ -204,9 +204,23 @@ export async function nudgePending(caseId?: string): Promise<void> {
     const outstanding = await db.query.checklistItems.findMany({
       where: and(eq(schema.checklistItems.caseId, kase.id), notInArray(schema.checklistItems.status, SATISFIED)),
     });
-    if (outstanding.length === 0) continue;
     const language = await clientLanguage(kase.clientId);
     try {
+      if (outstanding.length === 0 && paralegalId) {
+        await sendTemplate({
+          caseId: kase.id,
+          template: "status.update",
+          vars: { status: "We have everything we need right now. We will keep you updated." },
+        });
+        await writeAudit({
+          caseId: kase.id,
+          actor: paralegalId,
+          action: "nudge.sent",
+          payload: { pending: [], initiatedBy: paralegalId, message: "no documents pending" },
+        });
+        continue;
+      }
+      if (outstanding.length === 0) continue;
       await sendTemplate({
         caseId: kase.id,
         template: "document.nudge",
@@ -214,12 +228,13 @@ export async function nudgePending(caseId?: string): Promise<void> {
       });
       await writeAudit({
         caseId: kase.id,
-        actor: AGENT_ACTOR,
+        actor: paralegalId ?? AGENT_ACTOR,
         action: "nudge.sent",
-        payload: { pending: outstanding.map((i) => i.docName) },
+        payload: { pending: outstanding.map((i) => i.docName), initiatedBy: paralegalId ?? "schedule" },
       });
     } catch (err) {
       logger.warn("nudge failed", { caseId: kase.id, err: String(err) });
+      throw err;
     }
   }
 }

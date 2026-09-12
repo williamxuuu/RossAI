@@ -23,18 +23,23 @@ export function devEnabled(): boolean {
   return process.env.NODE_ENV !== "production";
 }
 
-export type FixtureFile = { filename: string; mimeType: string; bytes: number; label: string };
+export type FixtureFile = { filename: string; displayName: string; mimeType: string; bytes: number; label: string };
 
 const MIME: Record<string, string> = { ".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg" };
 
 /** What each fixture is for, so the simulator can say it on the button. */
 const LABELS: Record<string, string> = {
-  "acta-de-nacimiento.pdf": "Birth certificate (Spanish — no translation in the packet)",
+  "acta-de-nacimiento.pdf": "Birth certificate (translation not included)",
   "passport.pdf": "Passport (expires in under six months)",
   "i-797-notice.pdf": "USCIS notice (different name and date of birth, two blank fields)",
   "marriage-certificate.pdf": "Marriage certificate (consistent with the birth certificate)",
   "photo-id.png": "Photo ID — a readable copy",
   "photo-id-blurry.png": "Photo ID — too small to read, gets re-requested",
+};
+
+/** Friendly English names for the client workspace; filenames remain stable for the fixture pipeline. */
+const DISPLAY_NAMES: Record<string, string> = {
+  "acta-de-nacimiento.pdf": "Birth certificate.pdf",
 };
 
 export async function listFixtures(): Promise<FixtureFile[]> {
@@ -46,7 +51,7 @@ export async function listFixtures(): Promise<FixtureFile[]> {
     const mimeType = MIME[ext];
     if (!mimeType) continue;
     const bytes = (await readFile(path.join(FIXTURES_DIR, entry.name))).byteLength;
-    files.push({ filename: entry.name, mimeType, bytes, label: LABELS[entry.name] ?? entry.name });
+    files.push({ filename: entry.name, displayName: DISPLAY_NAMES[entry.name] ?? entry.name, mimeType, bytes, label: LABELS[entry.name] ?? entry.name });
   }
   return files.sort((a, b) => a.filename.localeCompare(b.filename));
 }

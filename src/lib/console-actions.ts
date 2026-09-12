@@ -52,6 +52,10 @@ export const escalationReplySchema = z.object({
   englishText: z.string().trim().min(1).max(4000),
 });
 
+export const clientMessageSchema = z.object({
+  englishText: z.string().trim().min(1).max(2000),
+});
+
 // ---------- lookups ----------
 
 async function requireCase(caseId: string): Promise<Case> {
@@ -225,6 +229,25 @@ export async function replyEscalation(input: {
   return { messageId, escalation: updated };
 }
 
+/** Send a paralegal-approved message that is not tied to a flag or escalation. */
+export async function sendClientMessage(input: {
+  caseId: string;
+  paralegalId: string;
+  englishText: string;
+}): Promise<{ messageId: string }> {
+  const kase = await requireCase(input.caseId);
+  if (kase.status === "closed") throw new ConsoleActionError(400, "case is closed");
+  try {
+    const sent = await sendApproved(input);
+    await touchCase(input.caseId);
+    return sent;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.warn("client message send failed", { caseId: input.caseId, error: message });
+    throw new ConsoleActionError(502, `could not send message: ${message}`);
+  }
+}
+
 /** Close an escalation without replying (e.g. the question was answered elsewhere). */
 export async function dismissEscalation(input: {
   escalationId: string;
@@ -273,7 +296,7 @@ export async function closeCase(input: { caseId: string; paralegalId: string }):
 export async function nudgeCase(input: { caseId: string; paralegalId: string }): Promise<void> {
   const kase = await requireCase(input.caseId);
   if (kase.status === "closed") throw new ConsoleActionError(400, "case is closed");
-  await runJob("nudge-pending", { caseId: kase.id });
+  await runJob("nudge-pending", { caseId: kase.id, paralegalId: input.paralegalId });
 }
 
 /** Re-run the packet scan. Only meaningful once the checklist is complete. */

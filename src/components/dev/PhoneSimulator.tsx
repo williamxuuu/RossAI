@@ -1,20 +1,15 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import Image from "next/image";
 import type { FixtureFile } from "@/lib/dev";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Textarea } from "@/components/ui/Textarea";
 
 /**
- * The client's phone.
- *
- * Left: the SMS thread, which is the whole client-side experience — there is no
- * portal, no login, no account. Right: the email the clinic asked them to send their
- * documents to, with the demo files to attach.
- *
- * Everything posts to /api/dev/send and then re-reads /api/dev/inbox, so the thread
- * shows exactly what the database says was sent, including who approved it.
+ * Client message and document workspace. Inbound messages travel through the same
+ * intake pipeline as a real text or email, while the page keeps the client-facing
+ * interaction in one familiar, simple place.
  */
 
 type InboxMessage = {
@@ -37,21 +32,10 @@ type Inbox = {
 
 const EMPTY: Inbox = { client: null, case: null, messages: [], checklist: [] };
 
-const OPENERS = [
-  "Hola, necesito ayuda con mis papeles de residencia",
-  "Hello, I need help with my citizenship application",
-  "Bonjour, j'ai besoin d'aide avec mes documents",
-];
-
-const QUESTIONS = [
-  { label: "Ask what a term means", text: "¿Qué significa adjustment of status?" },
-  { label: "Ask for legal judgment", text: "¿Debo marcar que sí estuve fuera del país más de seis meses?" },
-  { label: "Ask about progress", text: "¿Qué documentos les faltan de mi caso?" },
-];
-
 export function PhoneSimulator({ fixtures }: { fixtures: FixtureFile[] }) {
-  const [phone, setPhone] = useState("+15551230001");
-  const [draft, setDraft] = useState(OPENERS[0]);
+  // A fresh demo identity keeps the recording view empty without deleting prior cases.
+  const [phone] = useState("+15551230002");
+  const [draft, setDraft] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [inbox, setInbox] = useState<Inbox>(EMPTY);
   const [busy, setBusy] = useState(false);
@@ -76,8 +60,12 @@ export function PhoneSimulator({ fixtures }: { fixtures: FixtureFile[] }) {
       .catch(() => {
         /* the page is still usable without the thread */
       });
-    return () => controller.abort();
-  }, [phone, reloads]);
+    const timer = window.setInterval(refresh, 2000);
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+    };
+  }, [phone, reloads, refresh]);
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: "smooth" });
@@ -102,183 +90,146 @@ export function PhoneSimulator({ fixtures }: { fixtures: FixtureFile[] }) {
     }
   }
 
-  async function reset() {
-    setBusy(true);
-    await fetch("/api/dev/reset", { method: "POST" });
-    setBusy(false);
-    setSelected([]);
-    refresh();
-  }
-
   const pending = inbox.checklist.filter((c) => c.status !== "received" && c.status !== "accepted");
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[1100px] flex-col gap-5 px-5 py-8">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-semibold tracking-tight text-ink">Client simulator</h1>
-          <p className="mt-1 max-w-prose text-sm leading-relaxed text-muted">
-            You are the client. Text the clinic, then email your documents to the address it gives you. Everything you
-            send here goes through the same pipeline a real message would.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/" className="text-sm text-accent underline underline-offset-2">
-            Open the console
-          </Link>
-          <Button size="sm" variant="ghost" busy={busy} onClick={reset}>
-            Reset demo
-          </Button>
-        </div>
-      </header>
-
-      {error ? <p className="panel p-4 text-sm text-error">{error}</p> : null}
-
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <section className="panel flex flex-col gap-4 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="section-label">Text messages</h2>
-            <label className="flex items-center gap-2 text-xs text-muted">
-              from
-              <input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-40 rounded-full border border-border bg-surface px-3 py-1 text-xs text-ink"
-              />
-            </label>
+    <div className="h-dvh overflow-hidden bg-[#eaf3ff] px-4 py-6 text-[#1c1c1e] sm:px-8 sm:py-10">
+      <main className="mx-auto grid h-[calc(100dvh-3rem)] w-full max-w-[1100px] overflow-hidden rounded-[30px] bg-[#f5f5f7] shadow-[0_24px_70px_-30px_rgba(20,74,140,0.38)] sm:h-[calc(100dvh-5rem)] lg:grid-cols-[360px_minmax(0,1fr)]">
+        <section className="min-h-0 overflow-y-auto border-b border-[#d9dce3] bg-white p-5 lg:border-r lg:border-b-0 sm:p-6">
+          <div className="flex items-center gap-3">
+            <Image src="/rossai-r-logo.svg" alt="RossAI" width={44} height={44} className="size-11" />
+            <div>
+              <h1 className="font-semibold tracking-tight">RossAI</h1>
+              <p className="text-xs text-[#6e6e73]">Document center</p>
+            </div>
           </div>
 
-          {inbox.case ? (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <Chip tone="accent">{inbox.case.caseType ?? "intake"}</Chip>
-              <Chip tone="neutral">{inbox.case.status.replace(/_/g, " ")}</Chip>
-              <Chip tone="neutral">{inbox.client?.preferredLanguage}</Chip>
-              <Link href={`/cases/${inbox.case.id}`} className="ml-auto text-accent underline underline-offset-2">
-                this case in the console
-              </Link>
-            </div>
-          ) : null}
+          <div className="mt-7">
+            <h2 className="text-sm font-semibold">Your documents</h2>
+            <p className="mt-1 text-sm leading-relaxed text-[#6e6e73]">Choose the documents you would like to share with your care team.</p>
+          </div>
 
-          <ol ref={threadRef} className="flex max-h-[420px] flex-col gap-2 overflow-y-auto pr-1">
-            {inbox.messages.length === 0 ? (
-              <li className="rounded-[var(--radius-tile)] bg-surface px-4 py-6 text-center text-sm text-muted">
-                Nothing yet. Send the first message.
-              </li>
-            ) : null}
-            {inbox.messages.map((m) => (
-              <li
-                key={m.id}
-                className={
-                  "max-w-[85%] rounded-2xl px-4 py-2.5 " +
-                  (m.direction === "inbound" ? "ml-auto bg-accent text-accent-ink" : "bg-surface text-ink")
-                }
-              >
-                {m.channel === "email" ? (
-                  <p className={"text-[0.68rem] " + (m.direction === "inbound" ? "text-accent-ink/70" : "text-muted")}>
-                    email{m.subject ? ` · ${m.subject}` : ""}
-                  </p>
-                ) : null}
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
-                {m.direction === "outbound" && m.approvedBy ? (
-                  <p className="mt-1 text-[0.66rem] text-muted">sent as {m.approvedBy}</p>
-                ) : null}
+          <ul className="mt-4 flex flex-col gap-2">
+            {fixtures.map((f) => (
+              <li key={f.filename}>
+                <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#e2e3e8] bg-[#f8f9fb] p-3 transition-colors hover:bg-[#eef5ff]">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-4 accent-[#0a84ff]"
+                    checked={selected.includes(f.filename)}
+                    onChange={(e) =>
+                      setSelected((prev) => (e.target.checked ? [...prev, f.filename] : prev.filter((x) => x !== f.filename)))
+                    }
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{f.displayName}</span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-[#6e6e73]">{f.label}</span>
+                  </span>
+                </label>
               </li>
             ))}
-          </ol>
+          </ul>
 
-          <div className="flex flex-col gap-2">
-            <Textarea rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} />
-            <div className="flex flex-wrap gap-1.5">
-              {[...OPENERS, ...QUESTIONS.map((q) => q.text)].map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setDraft(t)}
-                  className="max-w-full truncate rounded-full bg-surface px-3 py-1 text-xs text-muted transition-colors hover:text-ink"
-                  title={t}
-                >
-                  {t.length > 40 ? `${t.slice(0, 40)}…` : t}
-                </button>
-              ))}
-            </div>
-            <Button
-              variant="primary"
-              size="sm"
-              busy={busy}
-              disabled={!draft.trim()}
-              onClick={() => send({ channel: "sms", body: draft })}
-            >
-              Send text
-            </Button>
-          </div>
-        </section>
-
-        <div className="flex flex-col gap-5">
-          <section className="panel flex flex-col gap-3 p-5">
-            <h2 className="section-label">Email your documents</h2>
-            <p className="text-xs leading-relaxed text-muted">
-              From <span className="text-ink">{email}</span>. Pick the files to attach, then send. The agent verifies
-              each one and texts you back.
-            </p>
-            <ul className="flex flex-col gap-1.5">
-              {fixtures.map((f) => (
-                <li key={f.filename}>
-                  <label className="flex cursor-pointer items-start gap-2 rounded-[var(--radius-tile)] bg-surface p-3 text-xs">
-                    <input
-                      type="checkbox"
-                      className="mt-0.5"
-                      checked={selected.includes(f.filename)}
-                      onChange={(e) =>
-                        setSelected((prev) => (e.target.checked ? [...prev, f.filename] : prev.filter((x) => x !== f.filename)))
-                      }
-                    />
-                    <span>
-                      <span className="block font-medium text-ink">{f.filename}</span>
-                      <span className="block leading-relaxed text-muted">{f.label}</span>
-                    </span>
-                  </label>
-                </li>
-              ))}
-              {fixtures.length === 0 ? (
-                <li className="text-xs text-muted">No fixtures. Run <code>npm run fixtures</code>.</li>
-              ) : null}
-            </ul>
-            <Button
-              variant="primary"
-              size="sm"
-              busy={busy}
-              disabled={selected.length === 0}
-              onClick={async () => {
-                await send({ channel: "email", body: "Aquí están mis documentos.", subject: "Mis documentos", fixtures: selected });
-                setSelected([]);
-              }}
-            >
-              Email {selected.length || ""} document{selected.length === 1 ? "" : "s"}
-            </Button>
-          </section>
+          <Button
+            variant="primary"
+            size="md"
+            className="mt-4 w-full !bg-[#0a84ff] hover:!bg-[#0077ed]"
+            busy={busy}
+            disabled={selected.length === 0}
+            onClick={async () => {
+              await send({ channel: "sms", body: "Here are my documents.", fixtures: selected });
+              setSelected([]);
+            }}
+          >
+            Share {selected.length > 0 ? `${selected.length} ` : ""}document{selected.length === 1 ? "" : "s"}
+          </Button>
 
           {inbox.checklist.length > 0 ? (
-            <section className="panel flex flex-col gap-2 p-5">
-              <h2 className="section-label">What the clinic is waiting for</h2>
-              <ul className="flex flex-col gap-1.5 text-xs">
+            <section className="mt-6 border-t border-[#e2e3e8] pt-5">
+              <h2 className="text-sm font-semibold">Document status</h2>
+              <ul className="mt-3 flex flex-col gap-2 text-sm">
                 {inbox.checklist.map((c) => (
-                  <li key={c.id} className="flex items-start justify-between gap-2">
-                    <span className="text-ink">{c.docName}</span>
+                  <li key={c.id} className="flex items-center justify-between gap-2">
+                    <span className="text-[#3a3a3c]">{c.docName}</span>
                     <Chip tone={c.status === "received" || c.status === "accepted" ? "ok" : c.status === "rejected" ? "error" : "neutral"}>
                       {c.status}
                     </Chip>
                   </li>
                 ))}
               </ul>
-              <p className="mt-1 text-xs text-muted">
-                {pending.length === 0
-                  ? "Everything is in — the case has moved into the paralegal queue."
-                  : `${pending.length} still to send.`}
+              <p className="mt-3 text-xs text-[#6e6e73]">
+                {pending.length === 0 ? "Your documents have been received." : `${pending.length} document${pending.length === 1 ? "" : "s"} still needed.`}
               </p>
             </section>
           ) : null}
-        </div>
-      </div>
+        </section>
+
+        <section className="flex min-h-0 flex-col bg-[#f5f5f7]">
+          <header className="flex items-center justify-center border-b border-[#d9dce3] bg-white px-5 py-4">
+            <div className="text-center">
+              <h2 className="text-sm font-semibold">RossAI Care Team</h2>
+              <p className="text-xs text-[#6e6e73]">Messages</p>
+            </div>
+          </header>
+
+          {error ? <p className="mx-5 mt-4 rounded-xl bg-[#ffe8e6] px-4 py-3 text-sm text-[#b42318]">{error}</p> : null}
+
+          <ol ref={threadRef} className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-5 sm:px-7">
+            {inbox.messages.length === 0 ? (
+              <li className="my-auto text-center text-sm text-[#6e6e73]">Send a message to get started.</li>
+            ) : null}
+            {inbox.messages.map((m) => (
+              <li
+                key={m.id}
+                className={
+                  "max-w-[85%] rounded-[20px] px-4 py-2.5 " +
+                  (m.direction === "inbound" ? "ml-auto bg-[#0a84ff] text-white" : "bg-[#e5e5ea] text-[#1c1c1e]")
+                }
+              >
+                {m.channel === "email" ? (
+                  <p className={"text-[0.68rem] " + (m.direction === "inbound" ? "text-white/75" : "text-[#6e6e73]")}>
+                    Documents{m.subject ? ` · ${m.subject}` : ""}
+                  </p>
+                ) : null}
+                {m.direction === "outbound" ? (
+                  <p className="mb-1 text-[0.68rem] font-medium text-[#6e6e73]">
+                    {m.approvedBy?.startsWith("dev|") || m.approvedBy === "template:document.nudge" ? "Dev Paralegal" : "RossAI Care Team"}
+                  </p>
+                ) : null}
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
+                {m.direction === "outbound" && m.approvedBy ? (
+                  <p className="mt-1 text-[0.66rem] text-[#6e6e73]">Sent by your care team</p>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+
+          <div className="border-t border-[#d9dce3] bg-white p-4 sm:p-5">
+            <div className="flex items-end gap-2 rounded-[22px] bg-[#f0f1f4] p-2 pl-4">
+              <Textarea
+                rows={1}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Message"
+                className="min-h-9 flex-1 resize-none border-0 bg-transparent px-0 py-1.5 text-sm shadow-none focus-visible:outline-none"
+              />
+            <Button
+              variant="primary"
+              size="sm"
+              className="!bg-[#0a84ff] hover:!bg-[#0077ed]"
+              busy={busy}
+              disabled={!draft.trim()}
+              onClick={async () => {
+                await send({ channel: "sms", body: draft });
+                setDraft("");
+              }}
+            >
+              Send
+            </Button>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
