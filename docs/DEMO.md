@@ -81,7 +81,8 @@ with no `OPENROUTER_API_KEY` this last message arrives in English and the log sa
 ## The other two things worth showing
 
 **The overlay refuses.** Open `/jargon` (or load `extension/` unpacked at
-`chrome://extensions` → Load unpacked). Ask it to explain a term. Without `EXA_API_KEY`
+`chrome://extensions` → Load unpacked). Select a term in the practice form — or open a
+PDF of your own, which is read in the browser and never uploaded. Without `EXA_API_KEY`
 it says *"We couldn't find an official USCIS source for this — ask the clinic"* and
 offers to reach a person. That is the whole product in one screen: it would rather say
 nothing than guess. Press the button and the question appears in the console queue as an

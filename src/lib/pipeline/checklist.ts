@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, asc, eq, isNull, notInArray } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { Case, ChecklistItem } from "@/db/schema";
 import { AGENT_ACTOR, writeAudit } from "@/lib/audit";
@@ -18,6 +18,7 @@ import { verifyDocument } from "./verify";
  *
  *   generateChecklist()         curated list for the case type, each item cited
  *   processInboundAttachment()  verify one attachment, accept or re-request it
+ *   verifyHeldDocuments()       re-queue documents that arrived before the checklist existed
  *   nudgePending()              remind about anything still pending
  *   maybeCompleteChecklist()    the gate: collecting_docs → scanning
  *
@@ -104,6 +105,23 @@ export async function processInboundAttachment(documentId: string): Promise<void
   if (!kase) return;
 
   const items = await db.query.checklistItems.findMany({ where: eq(schema.checklistItems.caseId, doc.caseId) });
+
+  // A document that arrives before the client has picked a case type has nothing to
+  // be matched against yet. Verifying it now would reject it as "not one of the
+  // documents we asked for" — when nothing has been asked for — and text the client
+  // to that effect. It is held untouched instead and verified by
+  // `verifyHeldDocuments()` the moment the checklist exists.
+  if (items.length === 0) {
+    logger.info("document held until the checklist exists", { caseId: doc.caseId, documentId });
+    await writeAudit({
+      caseId: doc.caseId,
+      actor: AGENT_ACTOR,
+      action: "document.held",
+      payload: { documentId, filename: doc.originalFilename, reason: "no_checklist_yet", caseStatus: kase.status },
+    });
+    return;
+  }
+
   const verdict = await verifyDocument(doc, items);
 
   await db
@@ -183,6 +201,27 @@ async function rejectDocument(kase: Case, documentId: string, verdict: Verdict, 
       reason: rejectionReason(verdict.reasonCode ?? "unreadable_file", language),
     },
   });
+}
+
+/**
+ * Queue verification for every document on the case that has never been verified —
+ * the ones `processInboundAttachment()` held because the checklist did not exist yet.
+ * Called once the checklist has been generated. `extracted` is written by every
+ * verification outcome, so "never verified" is exactly `extracted IS NULL`.
+ */
+export async function verifyHeldDocuments(caseId: string): Promise<number> {
+  const db = await getDb();
+  const held = await db.query.documents.findMany({
+    columns: { id: true },
+    where: and(eq(schema.documents.caseId, caseId), isNull(schema.documents.extracted)),
+    orderBy: [asc(schema.documents.createdAt)],
+  });
+  if (held.length === 0) return 0;
+  logger.info("verifying held documents", { caseId, count: held.length });
+  for (const doc of held) {
+    await enqueue("process-inbound-attachment", { documentId: doc.id });
+  }
+  return held.length;
 }
 
 // ---------------------------------------------------------------------------

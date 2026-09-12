@@ -6,7 +6,8 @@ import { normalizeLanguage } from "@/lib/i18n";
 import { withCors, preflight } from "@/lib/cors";
 import { createRateLimiter, requestKey, rateLimitResponse } from "@/lib/ratelimit";
 import { log } from "@/lib/log";
-import { detectFormNumber } from "../_lib/formHint";
+import { detectFormNumber } from "@/lib/jargon/formHint";
+import type { ExplainResponse } from "@/lib/jargon/types";
 import { ungroundedKind, ungroundedMessage } from "../_lib/messages";
 import { readJsonBody, textHash, pageHost } from "../_lib/common";
 
@@ -30,9 +31,7 @@ const Body = z.object({
   language: z.string().max(16).optional(),
 });
 
-export type ExplainResponse =
-  | { grounded: true; language: string; explanation: string; citation: { title: string; url: string; quote: string }; formHint?: string }
-  | { grounded: false; language: string; reason: string; message: string; formHint?: string };
+export type { ExplainResponse };
 
 export const OPTIONS = preflight;
 

@@ -42,3 +42,18 @@ export function reasoningEffortFor(tier: ModelTier, model: string): string | und
   if (!/^openai\/gpt-5/.test(model)) return undefined;
   return tier === "strong" ? "medium" : "low";
 }
+
+/**
+ * Whether the model takes a sampling temperature.
+ *
+ * GPT-5.x are reasoning models: `temperature` is absent from their
+ * `supported_parameters` on OpenRouter. Because every request here also sends
+ * `provider: { require_parameters: true }` — which is what guarantees the endpoint
+ * actually honours `response_format` instead of quietly returning prose —
+ * sending temperature makes OpenRouter find no eligible endpoint and answer
+ * "404 No endpoints found that can handle the requested parameters".
+ * Reasoning effort (above) is the knob these models take instead.
+ */
+export function supportsTemperature(model: string): boolean {
+  return !/^openai\/gpt-5/.test(model);
+}

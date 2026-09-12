@@ -33,6 +33,8 @@ RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nod
 
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+# public/ holds the practice form the /jargon reader opens with; standalone does not include it
+COPY --from=build --chown=nextjs:nodejs /app/public ./public
 COPY --from=build --chown=nextjs:nodejs /app/drizzle ./drizzle
 
 USER nextjs

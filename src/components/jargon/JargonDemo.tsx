@@ -1,14 +1,10 @@
 "use client";
 import { useState } from "react";
-import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
+import type { ExplainResponse } from "@/lib/jargon/types";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Textarea } from "@/components/ui/Textarea";
 import { ExternalIcon } from "@/components/ui/icons";
-
-type ExplainResponse =
-  | { grounded: true; language: string; explanation: string; citation: { title: string; url: string; quote: string }; formHint?: string }
-  | { grounded: false; language: string; reason: string; message: string; formHint?: string };
 
 const EXAMPLES = [
   "Adjustment of status",
@@ -17,9 +13,12 @@ const EXAMPLES = [
   "Affidavit of Support",
 ];
 
-export function JargonDemo() {
+/**
+ * Paste-a-term fallback for a client with no document open. The language is the
+ * page's (see ./JargonWorkspace.tsx), so both surfaces answer in the same one.
+ */
+export function JargonDemo({ language }: { language: string }) {
   const [text, setText] = useState(EXAMPLES[0]);
-  const [language, setLanguage] = useState("en");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ExplainResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +62,7 @@ export function JargonDemo() {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="panel flex flex-col gap-3 p-6">
+      <section className="flex flex-col gap-3">
         <label className="section-label" htmlFor="jargon-text">
           Selected text
         </label>
@@ -81,33 +80,16 @@ export function JargonDemo() {
           ))}
         </div>
         <div className="flex flex-wrap items-end gap-3">
-          <span className="flex flex-col gap-1">
-            <label className="section-label" htmlFor="jargon-language">
-              Explain in
-            </label>
-            <select
-              id="jargon-language"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="rounded-[var(--radius-tile)] border border-border bg-surface px-3 py-2 text-sm text-ink"
-            >
-              {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
-                <option key={code} value={code}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </span>
           <Button variant="primary" busy={busy} disabled={!text.trim()} onClick={explain}>
             Explain
           </Button>
         </div>
       </section>
 
-      {error ? <p className="panel p-5 text-sm text-error">{error}</p> : null}
+      {error ? <p className="text-sm text-error">{error}</p> : null}
 
       {result ? (
-        <section className="panel flex flex-col gap-3 p-6">
+        <section className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <Chip tone={result.grounded ? "ok" : "warn"}>{result.grounded ? "Grounded" : `Not grounded · ${result.reason}`}</Chip>
             {result.formHint ? <Chip tone="neutral">{result.formHint}</Chip> : null}

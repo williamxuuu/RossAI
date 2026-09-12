@@ -4,7 +4,8 @@ import { writeAudit, AGENT_ACTOR } from "@/lib/audit";
 import { normalizeLanguage } from "@/lib/i18n";
 import { withCors, preflight } from "@/lib/cors";
 import { createRateLimiter, requestKey, rateLimitResponse } from "@/lib/ratelimit";
-import { detectFormNumber } from "../_lib/formHint";
+import { detectFormNumber } from "@/lib/jargon/formHint";
+import type { EscalateResponse } from "@/lib/jargon/types";
 import { readJsonBody, textHash, pageHost } from "../_lib/common";
 import { fileJargonEscalation } from "../_lib/escalate";
 
@@ -34,7 +35,7 @@ const Body = z.object({
     .optional(),
 });
 
-export type EscalateResponse = { ok: true; escalationId: string };
+export type { EscalateResponse };
 
 export const OPTIONS = preflight;
 
