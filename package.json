@@ -15,7 +15,12 @@
     "db:seed": "tsx --conditions=react-server src/db/seed.ts",
     "db:reset": "rm -rf .data && npm run db:migrate && npm run db:seed",
     "trigger:dev": "npx trigger.dev@latest dev",
+<<<<<<< HEAD
     "ext:zip": "cd extension && zip -r ../rossai-extension.zip . -x \"*.DS_Store\""
+=======
+    "ext:zip": "cd extension && zip -r ../rossai-extension.zip . -x \"*.DS_Store\"",
+    "fixtures": "tsx scripts/make-fixtures.ts"
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.112",

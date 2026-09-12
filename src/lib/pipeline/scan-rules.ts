@@ -102,10 +102,26 @@ function stripDiacritics(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
+<<<<<<< HEAD
 /** Case-, diacritic-, punctuation- and order-insensitive name key. */
 export function normalizeName(raw: string): string {
   return stripDiacritics(raw)
     .toLowerCase()
+=======
+/**
+ * Case-, diacritic-, punctuation- and order-insensitive name key.
+ *
+ * Apostrophes are DELETED rather than turned into spaces. "O'Brien", "OBrien" and
+ * "O Brien" are one name written three ways, and a system that raises a high-severity
+ * name mismatch over an apostrophe is wrong about a large share of Irish, Italian and
+ * West African names. Hyphens do become spaces, because "Jean-Luc" and "Jean Luc" are
+ * two words either way.
+ */
+export function normalizeName(raw: string): string {
+  return stripDiacritics(raw)
+    .toLowerCase()
+    .replace(/['’`´]/g, "")
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter(Boolean)
@@ -113,6 +129,22 @@ export function normalizeName(raw: string): string {
     .join(" ");
 }
 
+<<<<<<< HEAD
+=======
+/** US state names and postal codes collapse to the same token. */
+const US_STATES: Record<string, string> = {
+  al: "alabama", ak: "alaska", az: "arizona", ar: "arkansas", ca: "california", co: "colorado",
+  ct: "connecticut", de: "delaware", fl: "florida", ga: "georgia", hi: "hawaii", ia: "iowa",
+  ks: "kansas", ky: "kentucky", la: "louisiana", ma: "massachusetts", md: "maryland", me: "maine",
+  mi: "michigan", mn: "minnesota", mo: "missouri", ms: "mississippi", mt: "montana", nc: "north carolina",
+  nd: "north dakota", ne: "nebraska", nh: "new hampshire", nj: "new jersey", nm: "new mexico", nv: "nevada",
+  ny: "new york", oh: "ohio", ok: "oklahoma", or: "oregon", pa: "pennsylvania", pr: "puerto rico",
+  ri: "rhode island", sc: "south carolina", sd: "south dakota", tn: "tennessee", tx: "texas", ut: "utah",
+  va: "virginia", vt: "vermont", wa: "washington", wi: "wisconsin", wv: "west virginia", wy: "wyoming",
+  dc: "district of columbia", id: "idaho", il: "illinois", in: "indiana",
+};
+
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 const ADDRESS_ABBREVIATIONS: Record<string, string> = {
   st: "street",
   str: "street",
@@ -141,6 +173,7 @@ const ADDRESS_ABBREVIATIONS: Record<string, string> = {
   america: "",
 };
 
+<<<<<<< HEAD
 /** Case-, punctuation- and abbreviation-insensitive address key. */
 export function normalizeAddress(raw: string): string {
   return stripDiacritics(raw)
@@ -149,6 +182,30 @@ export function normalizeAddress(raw: string): string {
     .split(/\s+/)
     .filter(Boolean)
     .map((t) => (t in ADDRESS_ABBREVIATIONS ? ADDRESS_ABBREVIATIONS[t] : t))
+=======
+/**
+ * Case-, punctuation- and abbreviation-insensitive address key.
+ *
+ * "412 W Main Street Apt 3, Houston, TX 77002" and "412 West Main St. #3, Houston,
+ * Texas 77002" are the same address, and a low-severity flag saying otherwise is the
+ * kind of noise that teaches a paralegal to stop reading flags. So "#" becomes the
+ * unit marker it stands for BEFORE punctuation is stripped, and state codes expand to
+ * state names.
+ *
+ * Note the ambiguity this accepts: "in", "or", "id" and "la" are both state codes and
+ * ordinary words. Expanding them can only make two addresses look MORE alike, and this
+ * key is used solely to decide whether to raise a mismatch — so the error it can cause
+ * is a missed low-severity flag, never a false one.
+ */
+export function normalizeAddress(raw: string): string {
+  return stripDiacritics(raw)
+    .toLowerCase()
+    .replace(/#\s*/g, "apartment ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => ADDRESS_ABBREVIATIONS[t] ?? US_STATES[t] ?? t)
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     .filter(Boolean)
     .join(" ");
 }
@@ -338,6 +395,7 @@ export function ruleNameMismatch(packet: ScanPacket): RuleFinding[] {
   ];
 }
 
+<<<<<<< HEAD
 /** (b) Date of birth differs across documents (no plausible reading of the dates agrees). */
 export function ruleDobMismatch(packet: ScanPacket): RuleFinding[] {
   const variants = collectVariants(packet, "dateOfBirth", (s) => s);
@@ -356,6 +414,35 @@ export function ruleDobMismatch(packet: ScanPacket): RuleFinding[] {
       description: `Date of birth differs across documents: ${describeVariants(packet, conflicting)}.`,
       proposedFix: "Confirm the date of birth against the birth certificate and correct the form entry or document that disagrees.",
       evidenceDocumentIds: conflicting.map((v) => v.doc.id),
+=======
+/**
+ * (b) Date of birth differs across documents (no plausible reading of the dates agrees).
+ *
+ * Dates are grouped into agreeing sets rather than compared pairwise against a running
+ * list: with a birth certificate and a marriage certificate that both say 14/03/1988
+ * and a notice that says 03/04/1988, the finding must name two dates, not three
+ * documents. Only one representative per group is described, and every document that
+ * carries a date of birth is attached as evidence so the paralegal can compare them.
+ */
+export function ruleDobMismatch(packet: ScanPacket): RuleFinding[] {
+  const variants = collectVariants(packet, "dateOfBirth", (s) => s).filter((v) => parseDateCandidates(v.raw).length > 0);
+  const groups: Variant[][] = [];
+  for (const v of variants) {
+    const group = groups.find((g) => datesMatch(g[0].raw, v.raw) !== false);
+    if (group) group.push(v);
+    else groups.push([v]);
+  }
+  if (groups.length < 2) return [];
+  const representatives = groups.map((g) => g[0]);
+  return [
+    {
+      rule: "dob_mismatch",
+      fieldRef: fieldRefFor(packet, "Date of Birth", representatives),
+      severity: "high",
+      description: `Date of birth differs across documents: ${describeVariants(packet, representatives)}.`,
+      proposedFix: "Confirm the date of birth against the birth certificate and correct the form entry or document that disagrees.",
+      evidenceDocumentIds: variants.map((v) => v.doc.id),
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
       groundingQuery: "date of birth must match supporting documents birth certificate",
     },
   ];

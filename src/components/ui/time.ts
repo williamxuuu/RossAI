@@ -15,10 +15,24 @@ export function relativeTime(iso: string, now: number = Date.now()): string {
   return formatDate(iso);
 }
 
+<<<<<<< HEAD
 export function formatDate(iso: string): string {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return "";
   return new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+=======
+/**
+ * A calendar date, rendered in UTC.
+ *
+ * Citations carry the day a passage was retrieved, not a moment. Rendering that in the
+ * viewer's zone shows a source retrieved at 00:00 UTC as the previous day to anyone
+ * west of Greenwich, which makes a paralegal doubt the citation for no reason.
+ */
+export function formatDate(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  return new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }
 
 export function formatDateTime(iso: string): string {

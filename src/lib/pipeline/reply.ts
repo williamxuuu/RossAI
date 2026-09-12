@@ -9,7 +9,12 @@ import { completeText } from "@/lib/llm/client";
 import { languageName, normalizeLanguage } from "@/lib/i18n";
 import { outboundAdviceCheck } from "@/lib/guardrails/classify";
 import { log } from "@/lib/log";
+<<<<<<< HEAD
 import { renderTemplate } from "./templates";
+=======
+import { caseCode } from "./casecode";
+import { hasTemplatePack, renderTemplate } from "./templates";
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 
 /**
  * THE HUMAN GATE (spec §4, §3.7).
@@ -49,6 +54,10 @@ export type TemplateName =
   | "document.rejected"
   | "document.nudge"
   | "checklist.complete"
+<<<<<<< HEAD
+=======
+  | "status.update"
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   | "escalation.human_reviewing"
   | "reply.generic";
 
@@ -102,7 +111,11 @@ export async function sendApproved(input: SendApprovedInput): Promise<{ messageI
     body: translated,
     language,
     approvedBy: paralegalId,
+<<<<<<< HEAD
     subject: channel === "email" ? await translateText(DEFAULT_EMAIL_SUBJECT, language) : undefined,
+=======
+    subject: channel === "email" ? emailSubject(language) : undefined,
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   });
 
   // Audit BEFORE the provider is called: the approval record must exist even if delivery fails.
@@ -141,10 +154,22 @@ export async function sendTemplate(input: SendTemplateInput): Promise<{ messageI
   const channel = resolveChannel(client, input.channel);
   const language = normalizeLanguage(client.preferredLanguage);
 
+<<<<<<< HEAD
   const vars = { ...defaultTemplateVars(provider), ...(input.vars ?? {}) };
   const english = renderTemplate(input.template, vars);
   if (!english) throw new Error(`template ${input.template} rendered empty`);
   const translated = await translateText(english, language);
+=======
+  const vars = { ...defaultTemplateVars(provider, language), caseCode: caseCode(kase.id), ...(input.vars ?? {}) };
+  // The English rendering is what the audit log records as the approved source text,
+  // even when the client receives the language-pack version.
+  const english = renderTemplate(input.template, { ...defaultTemplateVars(provider, "en"), caseCode: caseCode(kase.id), ...(input.vars ?? {}) });
+  if (!english) throw new Error(`template ${input.template} rendered empty`);
+  // A human translation of the clinic's own text beats a machine one, and costs nothing.
+  const translated = hasTemplatePack(language)
+    ? renderTemplate(input.template, vars, language)
+    : await translateText(english, language);
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   const approvedBy = templateApprover(input.template);
 
   const messageId = await insertOutbound({
@@ -154,14 +179,32 @@ export async function sendTemplate(input: SendTemplateInput): Promise<{ messageI
     body: translated,
     language,
     approvedBy,
+<<<<<<< HEAD
     subject: channel === "email" ? await translateText(DEFAULT_EMAIL_SUBJECT, language) : undefined,
+=======
+    subject: channel === "email" ? emailSubject(language) : undefined,
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   });
 
   await writeAudit({
     caseId: kase.id,
     actor: AGENT_ACTOR,
     action: "message.sent",
+<<<<<<< HEAD
     payload: { messageId, template: input.template, approvedBy, channel, language, vars: input.vars ?? {}, englishText: english, translated },
+=======
+    payload: {
+      messageId,
+      template: input.template,
+      approvedBy,
+      channel,
+      language,
+      source: hasTemplatePack(language) ? "language_pack" : language === "en" ? "english" : "machine_translation",
+      vars: input.vars ?? {},
+      englishText: english,
+      translated,
+    },
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   });
 
   // Operational templates never abort the pipeline on a delivery hiccup; the row + audit exist.
@@ -264,12 +307,39 @@ export async function translateText(text: string, targetLanguage: string): Promi
 // internals
 // ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 const DEFAULT_EMAIL_SUBJECT = "A message from your legal clinic";
 
 function defaultTemplateVars(provider: ChannelProvider): Record<string, string> {
   const id = provider.identity();
   return {
     clinicName: process.env.CLINIC_NAME?.trim() || "our legal clinic",
+=======
+/**
+ * Email subjects, clinic-owned like the templates. They are a fixed set rather than a
+ * translated string because a subject line is the one part of a message a client sees
+ * before opening it, and a machine translation is a poor thing to greet them with.
+ */
+const EMAIL_SUBJECTS: Record<string, string> = {
+  en: "A message from your legal clinic",
+  es: "Un mensaje de su clínica legal",
+};
+
+function emailSubject(language: string): string {
+  return EMAIL_SUBJECTS[language] ?? EMAIL_SUBJECTS.en;
+}
+
+/** Used when CLINIC_NAME is unset, so the fallback still reads as the client's language. */
+const GENERIC_CLINIC_NAME: Record<string, string> = {
+  en: "our legal clinic",
+  es: "nuestra clínica legal",
+};
+
+function defaultTemplateVars(provider: ChannelProvider, language: string): Record<string, string> {
+  const id = provider.identity();
+  return {
+    clinicName: process.env.CLINIC_NAME?.trim() || GENERIC_CLINIC_NAME[language] || GENERIC_CLINIC_NAME.en,
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     inboxEmail: id.email ?? "",
     clinicPhone: id.phone ?? "",
   };
@@ -335,8 +405,12 @@ async function deliver(input: DeliverInput): Promise<{ ok: true } | { ok: false;
     if (channel === "sms") {
       result = await provider.sendSms(client.phone as string, input.body);
     } else {
+<<<<<<< HEAD
       const subject = await translateText(DEFAULT_EMAIL_SUBJECT, input.language);
       result = await provider.sendEmail(client.email as string, subject, input.body);
+=======
+      result = await provider.sendEmail(client.email as string, emailSubject(input.language), input.body);
+>>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     }
     if (result.externalId) {
       const db = await getDb();
