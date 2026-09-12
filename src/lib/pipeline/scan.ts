@@ -1,10 +1,4 @@
 import "server-only";
-<<<<<<< HEAD
-/** CONTRACT STUB — implemented by the scanning module. See spec §3.4. */
-export async function scanCase(_caseId: string): Promise<void> {
-  throw new Error("not implemented: scanCase");
-}
-=======
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb, schema } from "@/db/client";
@@ -339,4 +333,3 @@ function countSeverity(flags: Flag[]): Record<FlagSeverity, number> {
 }
 
 export type { Passage };
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b

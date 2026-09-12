@@ -15,12 +15,6 @@ export function relativeTime(iso: string, now: number = Date.now()): string {
   return formatDate(iso);
 }
 
-<<<<<<< HEAD
-export function formatDate(iso: string): string {
-  const t = Date.parse(iso);
-  if (Number.isNaN(t)) return "";
-  return new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-=======
 /**
  * A calendar date, rendered in UTC.
  *
@@ -32,7 +26,6 @@ export function formatDate(iso: string): string {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return "";
   return new Date(t).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }
 
 export function formatDateTime(iso: string): string {

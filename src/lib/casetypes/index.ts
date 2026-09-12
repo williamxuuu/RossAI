@@ -1,15 +1,10 @@
 /**
-<<<<<<< HEAD
- * CONTRACT STUB (constants are final; checklist content is filled in by the
- * checklist module). Case types the MVP supports.
-=======
  * Case types the MVP supports, and the labels the client sees.
  *
  * The English labels are the clinic's own plain-language names for the forms, not
  * legal descriptions, and the translations are human-written for the same reason as
  * the message templates (src/lib/pipeline/templates.ts): the client's first contact
  * should read like a person wrote it. Falls back to English for any other language.
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
  */
 export const CASE_TYPES = ["I-485", "N-400", "I-130", "I-765", "I-90"] as const;
 export type CaseType = (typeof CASE_TYPES)[number];
@@ -22,8 +17,6 @@ export const CASE_TYPE_LABELS: Record<CaseType, string> = {
   "I-90": "Replace Green Card",
 };
 
-<<<<<<< HEAD
-=======
 /** What the client is asked to choose between, in their own words. */
 export const CASE_TYPE_CLIENT_LABELS: Record<string, Record<CaseType, string>> = {
   en: {
@@ -42,7 +35,6 @@ export const CASE_TYPE_CLIENT_LABELS: Record<string, Record<CaseType, string>> =
   },
 };
 
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 export function isCaseType(v: unknown): v is CaseType {
   return typeof v === "string" && (CASE_TYPES as readonly string[]).includes(v);
 }
@@ -50,8 +42,6 @@ export function isCaseType(v: unknown): v is CaseType {
 export function caseTypeLabel(v: string | null | undefined): string {
   return v && isCaseType(v) ? `${v} · ${CASE_TYPE_LABELS[v]}` : (v ?? "Unknown case type");
 }
-<<<<<<< HEAD
-=======
 
 export function caseTypeClientLabel(type: CaseType, language = "en"): string {
   return (CASE_TYPE_CLIENT_LABELS[language] ?? CASE_TYPE_CLIENT_LABELS.en)[type];
@@ -91,4 +81,3 @@ export function parseCaseTypeReply(reply: string): CaseType | null {
   }
   return null;
 }
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b

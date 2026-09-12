@@ -5,14 +5,6 @@ import type { TemplateName } from "./reply";
  * ... are clinic-owned fixed text, translated, and logged as template:<name>").
  *
  * Written in English, SMS-friendly, no legal advice. `{{var}}` placeholders are
-<<<<<<< HEAD
- * filled by `renderTemplate()`; `sendTemplate()` in reply.ts translates the result
- * into the client's language before sending.
- *
- * Variables every template may use without passing them explicitly (filled by
- * sendTemplate from the environment / channel identity):
- *   clinicName, inboxEmail, clinicPhone
-=======
  * filled by `renderTemplate()`; `sendTemplate()` in reply.ts renders the client's
  * language before sending.
  *
@@ -27,7 +19,6 @@ import type { TemplateName } from "./reply";
  * Variables every template may use without passing them explicitly (filled by
  * sendTemplate from the environment / channel identity):
  *   clinicName, inboxEmail, clinicPhone, caseCode
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
  */
 export const TEMPLATES: Record<TemplateName, string> = {
   "intake.welcome":
@@ -41,12 +32,8 @@ export const TEMPLATES: Record<TemplateName, string> = {
 
   "checklist.sent":
     "Thanks! To prepare your {{caseType}} case we need photos or scans of these documents:\n{{list}}\n" +
-<<<<<<< HEAD
-    "Please email them to {{inboxEmail}} (one document per email works best). I'll confirm each one as it arrives.",
-=======
     "Email them to {{inboxEmail}} and keep {{caseCode}} in the subject line so we know they are yours. " +
     "You can send them one at a time. I'll confirm each one as it arrives.",
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 
   "document.received": "Received: {{docName}}. Thank you!",
 
@@ -55,22 +42,15 @@ export const TEMPLATES: Record<TemplateName, string> = {
 
   "document.nudge":
     "Friendly reminder from {{clinicName}}: we still need these documents for your case:\n{{list}}\n" +
-<<<<<<< HEAD
-    "Please email them to {{inboxEmail}} when you can.",
-=======
     "Email them to {{inboxEmail}} with {{caseCode}} in the subject line when you can.",
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 
   "checklist.complete":
     "We have received all of your documents. Our clinic team will now review your case and will contact you if anything else is needed.",
 
-<<<<<<< HEAD
-=======
   "status.update":
     "Here is where your case stands right now:\n{{status}}\n" +
     "A member of our clinic team is the one who decides anything about your case.",
 
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   "escalation.human_reviewing":
     "Thanks for your question. A member of our clinic team is reviewing it and will reply to you here. " +
     "We can't answer questions about your specific situation by text until a person has looked at your case.",
@@ -78,13 +58,6 @@ export const TEMPLATES: Record<TemplateName, string> = {
   "reply.generic": "{{text}}",
 };
 
-<<<<<<< HEAD
-const PLACEHOLDER = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
-
-/** Substitute `{{var}}` placeholders. Unknown placeholders render as empty strings. */
-export function renderTemplate(name: TemplateName, vars: Record<string, string> = {}): string {
-  return TEMPLATES[name].replace(PLACEHOLDER, (_m, key: string) => vars[key] ?? "").trim();
-=======
 /**
  * Human-written translations of the operational templates.
  *
@@ -146,7 +119,6 @@ export function hasTemplatePack(language: string): boolean {
 export function renderTemplate(name: TemplateName, vars: Record<string, string> = {}, language = "en"): string {
   const source = (hasTemplatePack(language) ? TEMPLATE_PACKS[language][name] : undefined) ?? TEMPLATES[name];
   return source.replace(PLACEHOLDER, (_m, key: string) => vars[key] ?? "").trim();
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }
 
 /** Placeholders a template references, for callers that want to validate vars. */
@@ -155,8 +127,6 @@ export function templateVars(name: TemplateName): string[] {
   for (const m of TEMPLATES[name].matchAll(PLACEHOLDER)) out.add(m[1]);
   return [...out];
 }
-<<<<<<< HEAD
-=======
 
 /**
  * Every way a language pack can disagree with the English source. Empty means the
@@ -179,4 +149,3 @@ export function templatePackIssues(language: string): string[] {
   }
   return issues;
 }
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b

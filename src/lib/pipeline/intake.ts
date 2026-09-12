@@ -1,9 +1,4 @@
 import "server-only";
-<<<<<<< HEAD
-/** CONTRACT STUB — implemented by the intake module. See docs/ARCHITECTURE.md §1, spec §3.1/§3.5. */
-export async function processInboundMessage(_messageId: string): Promise<void> {
-  throw new Error("not implemented: processInboundMessage");
-=======
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { Case, Client, IntakeState, Message } from "@/db/schema";
@@ -273,5 +268,4 @@ async function answerIfGrounded(ctx: Ctx): Promise<void> {
     draftReply: result.text,
     draftCitation: result.citation,
   });
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }

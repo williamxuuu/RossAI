@@ -1,25 +1,6 @@
 import "server-only";
 import type { ChannelProvider } from "./types";
 import { MockChannelProvider } from "./mock";
-<<<<<<< HEAD
-
-export type { ChannelProvider, InboundMessage, InboundAttachment, Channel, OutboundResult } from "./types";
-
-let provider: ChannelProvider | null = null;
-
-/** CHANNEL_PROVIDER=ambiguous | mock (default). */
-export async function getChannelProvider(): Promise<ChannelProvider> {
-  if (provider) return provider;
-  const name = (process.env.CHANNEL_PROVIDER ?? "mock").toLowerCase();
-  if (name === "ambiguous") {
-    const { AmbiguousChannelProvider } = await import("./ambiguous");
-    provider = new AmbiguousChannelProvider();
-  } else {
-    provider = new MockChannelProvider();
-  }
-  return provider;
-}
-=======
 import { log } from "@/lib/log";
 
 export type { ChannelProvider, InboundMessage, InboundAttachment, Channel, OutboundResult } from "./types";
@@ -76,4 +57,3 @@ async function build(name: string): Promise<ChannelProvider> {
 export function resetChannelProvider(): void {
   provider = null;
 }
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b

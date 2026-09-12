@@ -1,16 +1,4 @@
 import "server-only";
-<<<<<<< HEAD
-/** CONTRACT STUB — implemented by the checklist module. See spec §3.3. */
-export async function processInboundAttachment(_documentId: string): Promise<void> {
-  throw new Error("not implemented: processInboundAttachment");
-}
-export async function nudgePending(_caseId?: string): Promise<void> {
-  throw new Error("not implemented: nudgePending");
-}
-/** Generate + persist the required-document list for a case (spec §3.3). Returns the items. */
-export async function generateChecklist(_caseId: string): Promise<import("@/db/schema").ChecklistItem[]> {
-  throw new Error("not implemented: generateChecklist");
-=======
 import { and, eq, notInArray } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { Case, ChecklistItem } from "@/db/schema";
@@ -273,5 +261,4 @@ async function clientLanguage(clientId: string): Promise<string> {
   const db = await getDb();
   const client = await db.query.clients.findFirst({ where: eq(schema.clients.id, clientId) });
   return client?.preferredLanguage ?? "en";
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }

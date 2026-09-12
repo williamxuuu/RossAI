@@ -14,12 +14,8 @@ export type JobName = "process-inbound-attachment" | "nudge-pending" | "scan-cas
 
 export type JobPayloads = {
   "process-inbound-attachment": { documentId: string };
-<<<<<<< HEAD
-  "process-inbound-message": { messageId: string };
-=======
   /** `hasAttachments` lets intake tell a question from a cover note on an email of documents. */
   "process-inbound-message": { messageId: string; hasAttachments?: boolean };
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   "nudge-pending": { caseId?: string };
   "scan-case": { caseId: string };
 };

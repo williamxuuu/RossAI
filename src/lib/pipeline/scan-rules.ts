@@ -102,12 +102,6 @@ function stripDiacritics(s: string): string {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
-<<<<<<< HEAD
-/** Case-, diacritic-, punctuation- and order-insensitive name key. */
-export function normalizeName(raw: string): string {
-  return stripDiacritics(raw)
-    .toLowerCase()
-=======
 /**
  * Case-, diacritic-, punctuation- and order-insensitive name key.
  *
@@ -121,7 +115,6 @@ export function normalizeName(raw: string): string {
   return stripDiacritics(raw)
     .toLowerCase()
     .replace(/['’`´]/g, "")
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter(Boolean)
@@ -129,8 +122,6 @@ export function normalizeName(raw: string): string {
     .join(" ");
 }
 
-<<<<<<< HEAD
-=======
 /** US state names and postal codes collapse to the same token. */
 const US_STATES: Record<string, string> = {
   al: "alabama", ak: "alaska", az: "arizona", ar: "arkansas", ca: "california", co: "colorado",
@@ -144,7 +135,6 @@ const US_STATES: Record<string, string> = {
   dc: "district of columbia", id: "idaho", il: "illinois", in: "indiana",
 };
 
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 const ADDRESS_ABBREVIATIONS: Record<string, string> = {
   st: "street",
   str: "street",
@@ -173,16 +163,6 @@ const ADDRESS_ABBREVIATIONS: Record<string, string> = {
   america: "",
 };
 
-<<<<<<< HEAD
-/** Case-, punctuation- and abbreviation-insensitive address key. */
-export function normalizeAddress(raw: string): string {
-  return stripDiacritics(raw)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((t) => (t in ADDRESS_ABBREVIATIONS ? ADDRESS_ABBREVIATIONS[t] : t))
-=======
 /**
  * Case-, punctuation- and abbreviation-insensitive address key.
  *
@@ -205,7 +185,6 @@ export function normalizeAddress(raw: string): string {
     .split(/\s+/)
     .filter(Boolean)
     .map((t) => ADDRESS_ABBREVIATIONS[t] ?? US_STATES[t] ?? t)
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
     .filter(Boolean)
     .join(" ");
 }
@@ -395,26 +374,6 @@ export function ruleNameMismatch(packet: ScanPacket): RuleFinding[] {
   ];
 }
 
-<<<<<<< HEAD
-/** (b) Date of birth differs across documents (no plausible reading of the dates agrees). */
-export function ruleDobMismatch(packet: ScanPacket): RuleFinding[] {
-  const variants = collectVariants(packet, "dateOfBirth", (s) => s);
-  const conflicting: Variant[] = [];
-  for (const v of variants) {
-    const agreesWithAll = conflicting.every((c) => datesMatch(c.raw, v.raw) !== false);
-    const parseable = parseDateCandidates(v.raw).length > 0;
-    if (parseable && (conflicting.length === 0 || !agreesWithAll)) conflicting.push(v);
-  }
-  if (conflicting.length < 2) return [];
-  return [
-    {
-      rule: "dob_mismatch",
-      fieldRef: fieldRefFor(packet, "Date of Birth", conflicting),
-      severity: "high",
-      description: `Date of birth differs across documents: ${describeVariants(packet, conflicting)}.`,
-      proposedFix: "Confirm the date of birth against the birth certificate and correct the form entry or document that disagrees.",
-      evidenceDocumentIds: conflicting.map((v) => v.doc.id),
-=======
 /**
  * (b) Date of birth differs across documents (no plausible reading of the dates agrees).
  *
@@ -442,7 +401,6 @@ export function ruleDobMismatch(packet: ScanPacket): RuleFinding[] {
       description: `Date of birth differs across documents: ${describeVariants(packet, representatives)}.`,
       proposedFix: "Confirm the date of birth against the birth certificate and correct the form entry or document that disagrees.",
       evidenceDocumentIds: variants.map((v) => v.doc.id),
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
       groundingQuery: "date of birth must match supporting documents birth certificate",
     },
   ];

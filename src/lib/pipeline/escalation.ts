@@ -1,13 +1,4 @@
 import "server-only";
-<<<<<<< HEAD
-import type { Citation } from "@/db/schema";
-
-/**
- * CONTRACT STUB — implemented by the intake/escalation/reply module (spec §3.5).
- * Creates an Escalation row, tells the client a human is reviewing (template), audits.
- */
-export async function createEscalation(_input: {
-=======
 import { and, desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { Citation, Escalation } from "@/db/schema";
@@ -29,7 +20,6 @@ const logger = log.scope("escalation");
 export type EscalationReason = "judgment" | "ungrounded" | "grounded_pending_approval" | "client_requested";
 
 export type CreateEscalationInput = {
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
   caseId: string;
   question: string;
   /**
@@ -38,14 +28,6 @@ export type CreateEscalationInput = {
    * grounded_pending_approval – a grounded draft exists but AUTO_SEND_GROUNDED_ANSWERS is off
    * client_requested          – the client pressed "still confused — ask the clinic"
    */
-<<<<<<< HEAD
-  reason: "judgment" | "ungrounded" | "grounded_pending_approval" | "client_requested";
-  sourceMessageId?: string;
-  draftReply?: string;
-  draftCitation?: Citation | null;
-}): Promise<{ escalationId: string }> {
-  throw new Error("not implemented: createEscalation");
-=======
   reason: EscalationReason;
   sourceMessageId?: string;
   draftReply?: string;
@@ -122,5 +104,4 @@ async function findRecentDuplicate(caseId: string, question: string): Promise<Es
   });
   if (!recent) return undefined;
   return Date.now() - recent.createdAt.getTime() < DEDUPE_WINDOW_MS ? recent : undefined;
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
 }

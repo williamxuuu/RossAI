@@ -14,12 +14,8 @@ export async function runJob<N extends JobName>(name: N, payload: JobPayloads[N]
     }
     case "process-inbound-message": {
       const { processInboundMessage } = await import("@/lib/pipeline/intake");
-<<<<<<< HEAD
-      await processInboundMessage((payload as JobPayloads["process-inbound-message"]).messageId);
-=======
       const p = payload as JobPayloads["process-inbound-message"];
       await processInboundMessage(p.messageId, { hasAttachments: p.hasAttachments ?? false });
->>>>>>> 8d64fb4a3699d6db3d952409328d6ef500dd697b
       return;
     }
     case "nudge-pending": {
